@@ -10,7 +10,6 @@
 		| App Config
 		|--------------------------------------------------------------------------
 		*/
-			//port: process.env.PORT || 3011,
 			name: 'Microservice Finding',
 			env: 'dev', // prod, qa, dev
 			port: {

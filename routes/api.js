@@ -16,6 +16,10 @@
 		}
 	}
 
+	const SyncDatabase = {
+		TR_FINDING: require( _directory_base + '/app/v1.0/Http/Controllers/SyncDatabase/TR_FINDING.js' )
+	};
+
 	// Middleware
 	const Middleware = {
 		v_1_0: {
@@ -23,12 +27,17 @@
 		}
 	}
 
+	const MT = require( _directory_base + '/app/v1.0/Http/Middleware/Testing.js' );
+
 /*
  |--------------------------------------------------------------------------
  | Routing
  |--------------------------------------------------------------------------
  */
 	module.exports = ( app ) => {
+
+		app.get( '/xxxx', SyncDatabase.TR_FINDING.sync );
+
 		/*
 		 |--------------------------------------------------------------------------
 		 | Welcome Message
@@ -57,7 +66,7 @@
 			app.get( '/api/v1.0/finding/all', Middleware.v_1_0.VerifyToken, Controllers.v_1_0.Finding.findAll );
 			app.get( '/api/v1.0/finding/q', Middleware.v_1_0.VerifyToken, Controllers.v_1_0.Finding.findAll );
 			app.get( '/api/v1.0/finding/:id', Middleware.v_1_0.VerifyToken, Controllers.v_1_0.Finding.findOne );
-			app.post( '/api/v1.0/finding', Middleware.v_1_0.VerifyToken, Controllers.v_1_0.Finding.create_or_update );
+			app.post( '/api/v1.0/finding', Middleware.v_1_0.VerifyToken, Controllers.v_1_0.Finding.create_or_update, MT );
 			app.post( '/api/v1.0/finding/comment', Middleware.v_1_0.VerifyToken, Controllers.v_1_0.Finding.create_or_update_comment );
 
 			// Summary

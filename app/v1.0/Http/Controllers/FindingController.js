@@ -136,7 +136,7 @@
 	  * sudah terbentuk maka akan mengupdate data.
 	  * --------------------------------------------------------------------
 	*/
-	exports.create_or_update = async ( req, res ) => {
+	exports.create_or_update = async ( req, res, next ) => {
 		
 		// Rule Validasi
 		var rules = [
@@ -223,6 +223,8 @@
 								data: {}
 							} );
 						}
+
+						next();
 
 						return res.send( {
 							status: true,

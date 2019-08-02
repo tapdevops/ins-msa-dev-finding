@@ -31,14 +31,24 @@
 		console.log("ready");
 		setInterval(function() {
 			payloads = [
-				{ topic: "cat", messages: `I have ${count} cats`, partition: 0 }
+				// { topic: "test", messages: `I have ${count} cats`, partition: 0 }
+				{
+					topic: "test",
+					messages: {
+						nama_lengkap: "ABC",
+						umur: 11
+					},
+					partition: 1
+				}
 			];
 
-			producer.send(payloads, function(err, data) {
-				console.log(data);
-				count += 1;
+			producer.send( payloads, function( err, data ) {
+				console.log( "Send to kafka" );
+				// console.log( "HEHEHEHEHE" );
+				// console.log( data );
+				// count += 1;
 			});
-		}, 5000);
+		}, 2000);
 	});
 
 	producer.on("error", function(err) {
