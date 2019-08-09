@@ -22,16 +22,48 @@
 	const App = Express();
 	var kafka = require("kafka-node"),
 	Producer = kafka.Producer,
-	client = new kafka.KafkaClient(),
-	producer = new Producer(client);
+	Consumer = kafka.Consumer,
+	client = new kafka.KafkaClient({kafkaHost : "149.129.252.13:9092"}),
+	producer = new Producer(client),    
+	consumer = new Consumer(
+        client,
+        [
+            { topic: 'kafkaRequestData', partition: 0 },{ topic: 'kafkaResponse', partition: 0 }
+        ],
+        {
+            autoCommit: false
+        }
+    );
+	consumer.on('message', function (message) {
+		console.log(message,JSON.parse(message.value));
+	});
 
 	let count = 0;
+	let reqObj = {
+		"data_source":[{
+			"msa_name":"auth",
+			"model_name":"UserAuth"
+		},{
+			"msa_name":"finding",
+			"model_name":"FindingModel"
+		}],
+		"query":"SELECT * FROM auth a JOIN finding f ON f.INSERT_USER=a.USER_ID",
+		"requester":"finding",
+		"request_id":0
+	}
+	let reqDataObj = {
+		"queue_id":0,
+		"msa_name":"finding",
+		"model_name":"FindingModel",
+		"agg":{}
+	}
+	//{ topic: "kafkaResponseData", messages: JSON.stringify(reqDataObj), partition: 0 }
 
 	producer.on("ready", function() {
-		console.log("ready");
+		console.log("ready",reqObj.toString());
 		setInterval(function() {
 			payloads = [
-				{ topic: "cat", messages: `I have ${count} cats`, partition: 0 }
+				{ topic: "kafkaRequest", messages: JSON.stringify(reqDataObj), partition: 0 }
 			];
 
 			producer.send(payloads, function(err, data) {
