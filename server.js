@@ -66,11 +66,13 @@
 				{ topic: "kafkaRequest", messages: JSON.stringify(reqDataObj), partition: 0 }
 			];
 
-			producer.send(payloads, function(err, data) {
-				console.log(data);
-				count += 1;
+			producer.send( payloads, function( err, data ) {
+				console.log( "Send to kafka" );
+				// console.log( "HEHEHEHEHE" );
+				// console.log( data );
+				// count += 1;
 			});
-		}, 5000);
+		}, 2000);
 	});
 
 	producer.on("error", function(err) {
