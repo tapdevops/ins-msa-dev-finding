@@ -46,9 +46,10 @@
 			let responseData = false;
 			if(json_message.msa_name=="finding"){
 				reqDataObj = {
-					"msa_name":"finding",
-					"requester":"finding",
-					"request_id":1,
+					"msa_name":json_message.msa_name,
+					"model_name":json_message.model_name,
+					"requester":json_message.requester,
+					"request_id":json_message.request_id,
 					"data":[
 						{
 							"FINDING_CODE":"123",
@@ -64,9 +65,10 @@
 			}
 			else if(json_message.msa_name=="auth"){
 				reqDataObj = {
-					"msa_name":"auth",
-					"requester":"finding",
-					"request_id":1,
+					"msa_name":json_message.msa_name,
+					"model_name":json_message.model_name,
+					"requester":json_message.requester,
+					"request_id":json_message.request_id,
 					"data":[
 						{
 							"CREATOR":"01",
@@ -85,38 +87,53 @@
 				let payloads = [
 					{ topic: "kafkaResponseData", messages: JSON.stringify(reqDataObj), partition: 0 }
 				];
-				/*producer.send( payloads, function( err, data ) {
+				producer.send( payloads, function( err, data ) {
 					console.log( "Send data to kafka",data );
-				});*/
+				});
 			}
 		}
-		else if(message.topic=="kafkaDataCollectionProgress"){
-			//update progress data collection
-			let data_complete = true;
-			data_source_request[json_message.msa_name] = true;
-			for(let x in data_source_request){
-				if(data_source_request[x]==false){
-					data_complete = false;
+		else if(message.topic=="kafkaDataCollectionProgress" && false){
+			if(json_message.requester=="finding"&&json_message.request_id==2){
+				//update progress data collection
+				let data_complete = true;
+				data_source_request[json_message.msa_name] = true;
+				for(let x in data_source_request){
+					if(data_source_request[x]==false){
+						data_complete = false;
+					}
+				}
+				if(data_complete){
+					var SSH = require('simple-ssh');
+
+					var ssh = new SSH({
+						host: '149.129.252.13',
+						user: 'root',
+						pass: 'T4pagri123'
+					});
+					//buat switch app dari stream(yang lagi jalan) ke data processor
+					ssh.exec("nohup /root/pyspark/script/switchapp.sh -r='requester=finding/request_id=2' &", {
+						out: function(stdout) {
+							console.log(stdout);
+						}
+					}).start();
 				}
 			}
-			/*if(data_complete){
-				var SSH = require('simple-ssh');
-
-				var ssh = new SSH({
-					host: '149.129.252.13',
-					user: 'root',
-					pass: 'T4pagri123'
-				});
-
-				ssh.exec('/root/spark/bin/spark-submit /root/pyspark/code/collecting.py requester=finding/request_id=1 > /root/pyspark/output/log.txt', {
-					out: function(stdout) {
-						console.log(stdout);
-					}
-				}).start();
-			}*/
 		}
 		else if(message.topic=="kafkaResponse"){
 			console.log(message,json_message);
+			var SSH = require('simple-ssh');
+
+			var ssh = new SSH({
+				host: '149.129.252.13',
+				user: 'root',
+				pass: 'T4pagri123'
+			});
+			//buat nyalain ulang streamnya
+			ssh.exec("nohup /root/spark/bin/spark-submit /root/pyspark/code/stream.py > /root/pyspark/output/streamlog.txt &", {
+				out: function(stdout) {
+					console.log(stdout);
+				}
+			}).start();
 		}
 	});
 
@@ -129,9 +146,9 @@
 			"msa_name":"finding",
 			"model_name":"FindingModel"
 		}],
-		"query":"SELECT * FROM auth a JOIN finding f ON f.INSERT_USER=a.USER_ID",
+		"query":"SELECT DISTINCT a.FINDING_CODE,a.CREATOR,b.NAME CREATOR_NAME FROM finding_FindingModel a LEFT JOIN auth_UserAuth b ON a.CREATOR=b.CREATOR",
 		"requester":"finding",
-		"request_id":1
+		"request_id":2
 	}
 
 	producer.on("ready", function() {
@@ -142,9 +159,9 @@
 				{ topic: "kafkaRequest", messages: JSON.stringify(reqObj), partition: 0 }
 			];
 
-			/*producer.send( payloads, function( err, data ) {
+			producer.send( payloads, function( err, data ) {
 				console.log( "Send to kafka request data" );
-			});*/
+			});
 		//}, 2000);
 	});
 
